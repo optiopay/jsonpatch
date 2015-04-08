@@ -392,8 +392,6 @@ func test(node string, p *patch, v reflect.Value) error {
 	case reflect.Ptr:
 		//TODO
 		return ErrNotImplemented
-		return nil
-
 	}
 	n := child.Interface()
 	m := child.Interface()
