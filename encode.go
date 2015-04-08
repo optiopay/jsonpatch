@@ -36,10 +36,10 @@ func (e *ErrUnsupported) Error() string {
 }
 
 type patch struct {
-	Op    string          `json:"op"`
-	Path  string          `json:"path"`
-	From  string          `json:"from"`
-	Value json.RawMessage `json:"value"`
+	Op    string
+	Path  string
+	From  string
+	Value json.RawMessage
 }
 
 // Apply applies a patch as defined in RFC 6902 to the passed interface.
