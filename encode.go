@@ -18,13 +18,12 @@ var (
 )
 
 var (
-	ErrNonPointer     = fmt.Errorf("jsonpatch: interface non-pointer")
-	ErrCouldNotCopy   = fmt.Errorf("jsonpatch: could not make a copy")
-	ErrUnmarshal      = fmt.Errorf("jsonpatch: error while unmarshalling the patch")
-	ErrNodeNil        = fmt.Errorf("jsonpatch: node was empty")
-	ErrIncorrectIndex = fmt.Errorf("jsonpatch: incorrect index")
-	ErrGarbage        = fmt.Errorf("jsonpatch: garbage value")
-	ErrNotImplemented = fmt.Errorf("jsonpatch: not implemented")
+	ErrNonPointer     = errors.New("jsonpatch: interface non-pointer")
+	ErrCouldNotCopy   = errors.New("jsonpatch: could not make a copy")
+	ErrUnmarshal      = errors.New("jsonpatch: error while unmarshalling the patch")
+	ErrNodeNil        = errors.New("jsonpatch: node was empty")
+	ErrIncorrectIndex = errors.New("jsonpatch: incorrect index")
+	ErrNotImplemented = errors.New("jsonpatch: not implemented")
 )
 
 type ErrUnsupported struct {
@@ -122,7 +121,7 @@ func findNode(root, node string, p *patch, x reflect.Value) error {
 		return &ErrUnsupported{root}
 	default:
 		// these are primitive types thus should not have fields
-		return ErrGarbage
+		return errors.New("jsonpatch: primitive types cannot have fields")
 	}
 	// Case when the child is a pointer and is nil
 	if child.Kind() == reflect.Ptr {
@@ -185,7 +184,9 @@ func applyNode(node string, p *patch, x reflect.Value) error {
 	case "test":
 		test(node, p, x)
 	case "copy":
+		return ErrNotImplemented
 	case "move":
+		return ErrNotImplemented
 	}
 	return nil
 }

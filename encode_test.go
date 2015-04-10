@@ -1,6 +1,7 @@
 package jsonpatch
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -11,6 +12,17 @@ type testUser struct {
 	Child  *testUser
 	Phones []string
 	M      map[string]string
+}
+
+func TestBestMatch(t *testing.T) {
+	type Test struct {
+		A string `json:"AwesomeName"`
+	}
+
+	ty := reflect.TypeOf(Test{})
+	if name := bestMatch("AwesomeName", ty); name != "A" {
+		t.Fatal("best match did not work", name)
+	}
 }
 
 func TestAdd(t *testing.T) {
@@ -65,6 +77,26 @@ func TestAdd2(t *testing.T) {
 	}
 	if u.Child.Name != "hobbes" {
 		t.Fatal("setting child failed", u.Child)
+	}
+}
+
+func TestAddSlice(t *testing.T) {
+	a := []*testUser{
+		&testUser{
+			Name: "hobbes",
+			Age:  100,
+		},
+	}
+	p := []byte(`[
+		{"op": "replace", "path": "/0/name", "value": "Calvin"},
+		{"op": "replace", "path": "/0/age", "value": 6}
+	]`)
+	err := Apply(p, &a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if a[0].Name != "Calvin" || a[0].Age != 6 {
+		t.Fatal("patch not set", *a[0])
 	}
 }
 
