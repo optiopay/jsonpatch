@@ -87,3 +87,52 @@ func TestStruct(t *testing.T) {
 		t.Fatal(*b.B)
 	}
 }
+
+func TestPointerToPointer(t *testing.T) {
+	type s struct {
+		A string
+	}
+
+	a := &s{A: "hello"}
+	b := &s{}
+	err := Copy(&a, &b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if b.A != a.A {
+		t.Fatal(*b)
+	}
+}
+
+// I wonder if anybody would want to do this, still better to test
+func TestPrimitives(t *testing.T) {
+	sa := "hello"
+	sb := ""
+	err := Copy(&sa, &sb)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sa != sb {
+		t.Fatal(sb, "not the same as", sa)
+	}
+
+	ia := 10
+	ib := 0
+	err = Copy(&ia, &ib)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sa != sb {
+		t.Fatal(ib, "not the same as", ia)
+	}
+
+	fa := 10.1
+	fb := 0.0
+	err = Copy(&fa, &fb)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sa != sb {
+		t.Fatal(fb, "not the same as", fb)
+	}
+}
