@@ -3,6 +3,7 @@ package deep
 import (
 	"errors"
 	"reflect"
+	"strings"
 )
 
 var (
@@ -22,7 +23,7 @@ func Copy(x, y interface{}) error {
 	}
 
 	ry := reflect.ValueOf(y)
-	if ry.Kind() != reflect.Ptr || ry.IsNil() {
+	if ry.Kind() != reflect.Ptr {
 		return ErrNonPointer
 	}
 	if rx.Kind() != ry.Kind() {
@@ -36,8 +37,8 @@ func rcopy(x, y reflect.Value) error {
 		x = x.Elem()
 	}
 	if y.Kind() == reflect.Ptr {
-		if !y.Elem().IsValid() {
-			y.Set(reflect.New(x.Type()))
+		if y.IsNil() {
+			y.Set(reflect.New(y.Type().Elem()))
 		}
 		y = y.Elem()
 	}
@@ -174,6 +175,14 @@ func copyStruct(x, y reflect.Value) error {
 
 	}
 	for i := 0; i < n; i++ {
+		st := x.Type().Field(i)
+		if st.Anonymous {
+			continue
+		}
+		// Ignore private fields
+		if string(st.Name[0]) != strings.ToUpper(string(st.Name[0])) {
+			continue
+		}
 		vx := x.Field(i)
 		vy := y.Field(i)
 		if vx.Kind() == reflect.Ptr {

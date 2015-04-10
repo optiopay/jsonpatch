@@ -243,7 +243,11 @@ func add(node string, p *patch, v reflect.Value) error {
 		v.SetMapIndex(reflect.ValueOf(node), reflect.ValueOf(n))
 
 	case reflect.Struct:
-		child := v.FieldByName(strings.Title(node))
+		name := bestMatch(node, v.Type())
+		if name == "" {
+			return ErrIncorrectIndex
+		}
+		child := v.FieldByName(name)
 		if child.Kind() == reflect.Ptr && child.IsNil() {
 			n := reflect.New(child.Type().Elem())
 			err := json.Unmarshal(p.Value, n.Interface())
@@ -312,7 +316,11 @@ func replace(node string, p *patch, v reflect.Value) error {
 		return nil
 
 	case reflect.Struct:
-		child := v.FieldByName(strings.Title(node))
+		name := bestMatch(node, v.Type())
+		if name == "" {
+			return ErrIncorrectIndex
+		}
+		child := v.FieldByName(name)
 		n := reflect.New(child.Type())
 		err := json.Unmarshal(p.Value, n.Interface())
 		if err != nil {
@@ -387,11 +395,23 @@ func test(node string, p *patch, v reflect.Value) error {
 		child = v.MapIndex(reflect.ValueOf(node))
 
 	case reflect.Struct:
-		child = v.FieldByName(strings.Title(node))
+		name := bestMatch(node, v.Type())
+		if name == "" {
+			return ErrIncorrectIndex
+		}
+		child = v.FieldByName(strings.Title(name))
 
 	case reflect.Ptr:
 		//TODO
 		return ErrNotImplemented
+
+	case reflect.Invalid, reflect.Chan, reflect.Func, reflect.Interface, reflect.UnsafePointer:
+		// TODO:
+		return &ErrUnsupported{node}
+	default:
+		// these are primitive types
+		child = v
+
 	}
 	n := child.Interface()
 	m := child.Interface()
