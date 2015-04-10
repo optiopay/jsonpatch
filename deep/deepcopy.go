@@ -2,6 +2,7 @@ package deep
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -42,7 +43,11 @@ func rcopy(x, y reflect.Value) error {
 	}
 	if y.Kind() == reflect.Ptr {
 		if y.IsNil() {
-			y.Set(reflect.New(y.Type().Elem()))
+			if y.CanAddr() {
+				y.Set(reflect.New(y.Type().Elem()))
+			} else {
+				return fmt.Errorf("deep: y(%v) is nil", y.Type().String())
+			}
 		}
 		y = y.Elem()
 	}
