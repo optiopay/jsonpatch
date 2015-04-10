@@ -18,8 +18,12 @@ var (
 // only types with all public members may be copied.
 func Copy(x, y interface{}) error {
 	rx := reflect.ValueOf(x)
-	if rx.Kind() != reflect.Ptr || rx.IsNil() {
+	if rx.Kind() != reflect.Ptr {
 		return ErrNonPointer
+	}
+	// No point doing anything when the original value is nil
+	if rx.IsNil() {
+		return nil
 	}
 
 	ry := reflect.ValueOf(y)
