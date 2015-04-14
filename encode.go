@@ -176,13 +176,13 @@ func bestMatch(name string, t reflect.Type) string {
 func applyNode(node string, p *patch, x reflect.Value) error {
 	switch p.Op {
 	case "add":
-		add(node, p, x)
+		return add(node, p, x)
 	case "replace":
-		replace(node, p, x)
+		return replace(node, p, x)
 	case "remove":
-		remove(node, p, x)
+		return remove(node, p, x)
 	case "test":
-		test(node, p, x)
+		return test(node, p, x)
 	case "copy":
 		return ErrNotImplemented
 	case "move":
@@ -400,7 +400,7 @@ func test(node string, p *patch, v reflect.Value) error {
 		if name == "" {
 			return ErrIncorrectIndex
 		}
-		child = v.FieldByName(strings.Title(name))
+		child = v.FieldByName(name)
 
 	case reflect.Ptr:
 		//TODO
@@ -412,13 +412,18 @@ func test(node string, p *patch, v reflect.Value) error {
 	default:
 		// these are primitive types
 		child = v
-
 	}
-	n := child.Interface()
 	m := child.Interface()
+	n := child.Interface()
 	err := json.Unmarshal(p.Value, &n)
 	if err != nil {
 		return err
+	}
+
+	// JSON represents numbers as float64 and thus an unmarshal would
+	// change the type of n to a float64 and needs conversion.
+	if reflect.TypeOf(m) != reflect.TypeOf(n) {
+		n = reflect.ValueOf(n).Convert(reflect.TypeOf(m)).Interface()
 	}
 	if !reflect.DeepEqual(n, m) {
 		return errors.New("elements are not equal")
