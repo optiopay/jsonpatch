@@ -34,7 +34,8 @@ func (e *ErrUnsupported) Error() string {
 	return fmt.Sprintf("jsonpatch: unsupported type for key %s", e.Err)
 }
 
-type patch struct {
+// Patch represents an individual patch operation
+type Patch struct {
 	Op    string
 	Path  string
 	From  string
@@ -51,7 +52,7 @@ func Apply(data []byte, x interface{}) error {
 		return ErrNonPointer
 	}
 
-	var patches []patch
+	var patches []Patch
 	err := json.Unmarshal(data, &patches)
 	if err != nil {
 		return err
@@ -78,7 +79,7 @@ func Apply(data []byte, x interface{}) error {
 	return nil
 }
 
-func rapply(path string, p *patch, x reflect.Value) error {
+func rapply(path string, p *Patch, x reflect.Value) error {
 	args := strings.SplitN(path, "/", 2)
 	if len(args) == 2 {
 		return findNode(args[0], args[1], p, x)
@@ -86,7 +87,7 @@ func rapply(path string, p *patch, x reflect.Value) error {
 	return applyNode(args[0], p, x)
 }
 
-func findNode(root, node string, p *patch, x reflect.Value) error {
+func findNode(root, node string, p *Patch, x reflect.Value) error {
 	var child reflect.Value
 	if x.Kind() == reflect.Ptr {
 		if x.IsNil() {
@@ -173,7 +174,7 @@ func bestMatch(name string, t reflect.Type) string {
 	return ""
 }
 
-func applyNode(node string, p *patch, x reflect.Value) error {
+func applyNode(node string, p *Patch, x reflect.Value) error {
 	switch p.Op {
 	case "add":
 		return add(node, p, x)
@@ -191,7 +192,7 @@ func applyNode(node string, p *patch, x reflect.Value) error {
 	return nil
 }
 
-func add(node string, p *patch, v reflect.Value) error {
+func add(node string, p *Patch, v reflect.Value) error {
 	var child reflect.Value
 	if v.Kind() == reflect.Ptr {
 		if v.IsNil() {
@@ -280,7 +281,7 @@ func add(node string, p *patch, v reflect.Value) error {
 	return nil
 }
 
-func replace(node string, p *patch, v reflect.Value) error {
+func replace(node string, p *Patch, v reflect.Value) error {
 	var child reflect.Value
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -338,7 +339,7 @@ func replace(node string, p *patch, v reflect.Value) error {
 	return nil
 }
 
-func remove(node string, p *patch, v reflect.Value) error {
+func remove(node string, p *Patch, v reflect.Value) error {
 	if v.Kind() == reflect.Ptr {
 		v = reflect.Indirect(v)
 	}
@@ -372,7 +373,7 @@ func remove(node string, p *patch, v reflect.Value) error {
 	return nil
 }
 
-func test(node string, p *patch, v reflect.Value) error {
+func test(node string, p *Patch, v reflect.Value) error {
 	if v.Kind() == reflect.Ptr {
 		v = reflect.Indirect(v)
 	}
